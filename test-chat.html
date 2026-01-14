@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Chat Test - User 1</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+      }
+      .messages {
+        border: 1px solid #ccc;
+        height: 300px;
+        overflow-y: auto;
+        padding: 10px;
+        margin: 10px 0;
+      }
+      .message {
+        padding: 5px;
+        margin: 5px 0;
+      }
+      .message.system {
+        background: #f0f0f0;
+        font-style: italic;
+      }
+      .message.me {
+        background: #e3f2fd;
+      }
+      .message.other {
+        background: #fff;
+      }
+      input,
+      button {
+        padding: 8px;
+        margin: 5px 0;
+      }
+      input {
+        width: 70%;
+      }
+      button {
+        width: 25%;
+      }
+      .status {
+        color: green;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Chat Test - User 1 (Rekha)</h2>
+      <div class="status" id="status">Disconnected</div>
+
+      <div>
+        <input id="username" value="Rekha" placeholder="Username" />
+        <button onclick="register()">Register</button>
+      </div>
+
+      <div>
+        <input id="channelName" value="friends" placeholder="Channel name" />
+        <button onclick="createChannel()">Create Channel</button>
+        <button onclick="joinChannel()">Join Channel</button>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div>
+        <input id="messageInput" placeholder="Type a message..." />
+        <button onclick="sendMessage()">Send</button>
+      </div>
+
+      <div style="margin-top: 20px; font-size: 12px; color: #666">
+        <strong>Instructions:</strong><br />
+        1. Open this file in two browser windows/tabs<br />
+        2. Change username to "Jaya" in second window<br />
+        3. Click Register in both windows<br />
+        4. Create channel "friends" in first window<br />
+        5. Join channel in both windows<br />
+        6. Send messages from both windows - you should see all messages in both
+        windows
+      </div>
+    </div>
+
+    <script src="http://localhost:4000/socket.io/socket.io.js"></script>
+    <script>
+      let socket;
+      let visitorId = "test-" + Date.now() + "-" + Math.random();
+      let currentChannelId = null;
+      let currentUsername = null;
+
+      function log(msg, type = "info") {
+        const messagesDiv = document.getElementById("messages");
+        const div = document.createElement("div");
+        div.className = "message " + type;
+        div.textContent = msg;
+        messagesDiv.appendChild(div);
+        messagesDiv.scrollTop = messagesDiv.scrollHeight;
+      }
+
+      // Connect socket
+      socket = io("http://localhost:4000", {
+        autoConnect: true,
+        withCredentials: true,
+      });
+
+      socket.on("connect", () => {
+        document.getElementById("status").textContent =
+          "Connected (ID: " + socket.id + ")";
+        log("Connected to server", "system");
+      });
+
+      socket.on("disconnect", () => {
+        document.getElementById("status").textContent = "Disconnected";
+        log("Disconnected from server", "system");
+      });
+
+      socket.on("message", (msg) => {
+        const isMe = msg.senderVisitorId === visitorId;
+        log(`[${msg.senderUsername}]: ${msg.content}`, isMe ? "me" : "other");
+      });
+
+      socket.on("system", (msg) => {
+        log("System: " + msg.content, "system");
+      });
+
+      socket.on("channels", (channels) => {
+        log("Channels updated: " + channels.length + " channels", "system");
+      });
+
+      function register() {
+        const username = document.getElementById("username").value;
+        socket.emit("register", { username, visitorId }, (response) => {
+          if (response.error) {
+            log("Registration error: " + response.error, "system");
+          } else {
+            currentUsername = response.user.username;
+            log("Registered as: " + currentUsername, "system");
+          }
+        });
+      }
+
+      function createChannel() {
+        const name = document.getElementById("channelName").value;
+        socket.emit("createChannel", { name, visitorId }, (response) => {
+          if (response.error) {
+            log("Channel creation error: " + response.error, "system");
+          } else {
+            currentChannelId = response.channel._id;
+            log(
+              "Channel created: " + name + " (ID: " + currentChannelId + ")",
+              "system"
+            );
+            // Auto-join after creation
+            setTimeout(() => joinChannel(), 500);
+          }
+        });
+      }
+
+      function joinChannel() {
+        if (!currentChannelId) {
+          // Try to get channel ID from input
+          const channelName = document.getElementById("channelName").value;
+          socket.emit("getChannels", (channels) => {
+            const channel = channels.find((c) => c.name === channelName);
+            if (channel) {
+              currentChannelId = channel._id;
+              doJoin();
+            } else {
+              log("Channel not found: " + channelName, "system");
+            }
+          });
+        } else {
+          doJoin();
+        }
+      }
+
+      function doJoin() {
+        socket.emit(
+          "joinChannel",
+          { channelId: currentChannelId, visitorId },
+          (response) => {
+            if (response.error) {
+              log("Join error: " + response.error, "system");
+            } else {
+              log(
+                "Joined channel. History: " +
+                  response.messages.length +
+                  " messages",
+                "system"
+              );
+              response.messages.forEach((msg) => {
+                const isMe = msg.senderVisitorId === visitorId;
+                if (msg.system) {
+                  log("System: " + msg.content, "system");
+                } else {
+                  log(
+                    `[${msg.senderUsername}]: ${msg.content}`,
+                    isMe ? "me" : "other"
+                  );
+                }
+              });
+            }
+          }
+        );
+      }
+
+      function sendMessage() {
+        const input = document.getElementById("messageInput");
+        const content = input.value.trim();
+        if (!content || !currentChannelId) return;
+
+        socket.emit("sendMessage", {
+          channelId: currentChannelId,
+          content,
+          senderVisitorId: visitorId,
+        });
+
+        input.value = "";
+      }
+
+      // Allow Enter key to send message
+      document
+        .getElementById("messageInput")
+        .addEventListener("keypress", (e) => {
+          if (e.key === "Enter") sendMessage();
+        });
+    </script>
+  </body>
+</html>

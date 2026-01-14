@@ -1,0 +1,21 @@
+{
+  "name": "meri-chat-app",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "dev:server": "npm --prefix server run dev",
+    "dev:client": "npm --prefix client run dev",
+    "dev": "bash scripts/dev.sh"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0",
+    "socket.io-client": "^4.8.3",
+    "wait-on": "^7.0.1"
+  }
+}
