@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Send } from "lucide-react";
 
 interface Props {
   onSend: (text: string) => void;
@@ -16,17 +19,17 @@ export const MessageInput = ({ onSend, disabled }: Props) => {
   };
 
   return (
-    <form className="input-row" onSubmit={submit}>
-      <input
-        className="input"
-        placeholder="Type a message"
+    <form onSubmit={submit} className="flex gap-2 p-4 border-t bg-background">
+      <Input
+        placeholder="Type a message..."
         value={text}
         onChange={(e) => setText(e.target.value)}
         disabled={disabled}
+        className="flex-1"
       />
-      <button className="button" type="submit" disabled={disabled}>
-        Send
-      </button>
+      <Button type="submit" disabled={disabled} size="icon">
+        <Send className="h-4 w-4" />
+      </Button>
     </form>
   );
 };

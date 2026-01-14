@@ -1,4 +1,15 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Shield, AlertCircle } from "lucide-react";
 
 interface Props {
   open: boolean;
@@ -12,8 +23,6 @@ export const AdminLoginModal = ({ open, onClose, onLogin, error }: Props) => {
   const [password, setPassword] = useState("admin");
   const [loading, setLoading] = useState(false);
 
-  if (!open) return null;
-
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -22,44 +31,50 @@ export const AdminLoginModal = ({ open, onClose, onLogin, error }: Props) => {
   };
 
   return (
-    <div className="modal-backdrop">
-      <div className="modal">
-        <h3>Admin Login</h3>
-        <form
-          onSubmit={submit}
-          style={{ display: "flex", flexDirection: "column", gap: 10 }}
-        >
-          <input
-            className="input"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="Email"
-            type="email"
-          />
-          <input
-            className="input"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Password"
-            type="password"
-          />
-          {error && (
-            <div style={{ color: "#dc2626", fontSize: 13 }}>{error}</div>
-          )}
-          <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
-            <button
-              className="button secondary"
-              type="button"
-              onClick={onClose}
-            >
-              Cancel
-            </button>
-            <button className="button" type="submit" disabled={loading}>
-              {loading ? "Signing in..." : "Login"}
-            </button>
+    <Dialog open={open} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            <DialogTitle>Admin Login</DialogTitle>
           </div>
+          <DialogDescription>
+            Sign in with admin credentials to access management features.
+          </DialogDescription>
+        </DialogHeader>
+        <form onSubmit={submit} className="space-y-4">
+          <div className="space-y-2">
+            <Input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email"
+            />
+          </div>
+          <div className="space-y-2">
+            <Input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password"
+            />
+          </div>
+          {error && (
+            <div className="flex items-center gap-2 text-sm text-destructive">
+              <AlertCircle className="h-4 w-4" />
+              <span>{error}</span>
+            </div>
+          )}
+          <DialogFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Signing in..." : "Login"}
+            </Button>
+          </DialogFooter>
         </form>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 };

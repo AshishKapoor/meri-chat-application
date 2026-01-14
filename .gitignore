@@ -4,9 +4,6 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 .DS_Store
-.env
-.env.local
-.env.*.local
 /dist
 /build
 /.turbo

@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { UserCircle } from "lucide-react";
 
 interface Props {
   onSubmit: (username: string) => void;
@@ -14,16 +17,17 @@ export const UsernameForm = ({ onSubmit }: Props) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "flex", gap: 8 }}>
-      <input
-        className="input"
-        placeholder="Pick a name"
-        value={username}
-        onChange={(e) => setUsername(e.target.value)}
-      />
-      <button className="button" type="submit">
-        Join
-      </button>
+    <form onSubmit={handleSubmit} className="flex gap-2">
+      <div className="relative flex-1">
+        <UserCircle className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Pick a username"
+          value={username}
+          onChange={(e) => setUsername(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+      <Button type="submit">Join</Button>
     </form>
   );
 };

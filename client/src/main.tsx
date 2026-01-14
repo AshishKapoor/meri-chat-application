@@ -2,12 +2,15 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import App from "./App";
 import { SocketProvider } from "./context/SocketContext";
+import { ThemeProvider } from "./hooks/useTheme";
 import "./styles.css";
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>
-    <SocketProvider>
-      <App />
-    </SocketProvider>
+    <ThemeProvider>
+      <SocketProvider>
+        <App />
+      </SocketProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

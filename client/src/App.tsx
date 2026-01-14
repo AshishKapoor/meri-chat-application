@@ -7,13 +7,31 @@ import { MessageInput } from "./components/MessageInput";
 import { AdminLoginModal } from "./components/AdminLoginModal";
 import { useSocketContext } from "./context/SocketContext";
 import { useVisitorId } from "./hooks/useVisitorId";
+import { useTheme } from "./hooks/useTheme";
 import { Channel, Message, User } from "./types";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import {
+  TooltipProvider,
+  Tooltip,
+  TooltipTrigger,
+  TooltipContent,
+} from "@/components/ui/tooltip";
+import {
+  MessageSquare,
+  Shield,
+  User as UserIcon,
+  Moon,
+  Sun,
+} from "lucide-react";
 
 const ADMIN_STORAGE_KEY = "chatapp-admin-session";
 
 const App = () => {
   const socket = useSocketContext();
   const visitorId = useVisitorId();
+  const { theme, toggleTheme } = useTheme();
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [channels, setChannels] = useState<Channel[]>([]);
@@ -34,10 +52,10 @@ const App = () => {
   useEffect(() => {
     if (!socket || !visitorId) return;
 
-    (socket as any).emit("getChannels", (chs: Channel[]) => setChannels(chs));
+    socket.emit("getChannels", (chs: Channel[]) => setChannels(chs));
 
     const channelsListener = (chs: Channel[]) => setChannels(chs);
-    (socket as any).on("channels", channelsListener);
+    socket.on("channels", channelsListener);
 
     const deletedListener = (channelId: string) => {
       setCurrentChannel((prev) => (prev?._id === channelId ? null : prev));
@@ -48,11 +66,11 @@ const App = () => {
         prev.filter((c: Channel) => c._id !== channelId)
       );
     };
-    (socket as any).on("channelDeleted", deletedListener);
+    socket.on("channelDeleted", deletedListener);
 
     return () => {
-      (socket as any).off("channels", channelsListener);
-      (socket as any).off("channelDeleted", deletedListener);
+      socket.off("channels", channelsListener);
+      socket.off("channelDeleted", deletedListener);
     };
   }, [socket, visitorId]);
 
@@ -70,12 +88,12 @@ const App = () => {
       }
     };
 
-    (socket as any).on("message", messageListener);
-    (socket as any).on("system", systemListener);
+    socket.on("message", messageListener);
+    socket.on("system", systemListener);
 
     return () => {
-      (socket as any).off("message", messageListener);
-      (socket as any).off("system", systemListener);
+      socket.off("message", messageListener);
+      socket.off("system", systemListener);
     };
   }, [socket, currentChannel]);
 
@@ -101,7 +119,7 @@ const App = () => {
 
   const handleRegister = (username: string) => {
     if (!socket || !visitorId) return;
-    (socket as any).emit(
+    socket.emit(
       "register",
       { username, visitorId },
       (res: { user?: User; error?: string }) => {
@@ -113,7 +131,7 @@ const App = () => {
   const handleAdminLogin = async (email: string, password: string) => {
     return new Promise<void>((resolve) => {
       if (!socket || !visitorId) return resolve();
-      (socket as any).emit(
+      socket.emit(
         "adminLogin",
         { email, password, visitorId },
         (res: { user?: User; error?: string }) => {
@@ -137,7 +155,7 @@ const App = () => {
 
   const handleCreateChannel = (name: string) => {
     if (!socket || !visitorId) return;
-    (socket as any).emit(
+    socket.emit(
       "createChannel",
       { name, visitorId },
       (res: { channel?: Channel; error?: string }) => {
@@ -151,7 +169,7 @@ const App = () => {
   const handleSuggestChannel = async (): Promise<string> => {
     return new Promise((resolve) => {
       if (!socket) return resolve("Cool Cyan Falcon");
-      (socket as any).emit("suggestChannelName", (suggestion: string) =>
+      socket.emit("suggestChannelName", (suggestion: string) =>
         resolve(suggestion)
       );
     });
@@ -160,9 +178,9 @@ const App = () => {
   const handleJoinChannel = (channelId: string) => {
     if (!socket || !visitorId) return;
     if (currentChannel?._id && currentChannel._id !== channelId) {
-      (socket as any).emit("leaveChannel", { channelId: currentChannel._id });
+      socket.emit("leaveChannel", { channelId: currentChannel._id });
     }
-    (socket as any).emit(
+    socket.emit(
       "joinChannel",
       { channelId, visitorId },
       (res: { messages?: Message[]; error?: string }) => {
@@ -179,7 +197,7 @@ const App = () => {
     if (!socket || !visitorId) return;
     const confirmed = window.confirm("Delete this channel? (messages removed)");
     if (!confirmed) return;
-    (socket as any).emit(
+    socket.emit(
       "deleteChannel",
       { channelId, visitorId },
       (res: { success?: boolean; error?: string }) => {
@@ -198,7 +216,7 @@ const App = () => {
 
   const handleSendMessage = (text: string) => {
     if (!socket || !currentChannel || !visitorId) return;
-    (socket as any).emit("sendMessage", {
+    socket.emit("sendMessage", {
       channelId: currentChannel._id,
       content: text,
       senderVisitorId: visitorId,
@@ -206,65 +224,119 @@ const App = () => {
   };
 
   return (
-    <div className="app-shell">
-      <div className="sidebar">
-        <div className="header">
-          <div>
-            <div style={{ fontWeight: 800, fontSize: 18 }}>Meri Chat</div>
-            <div style={{ color: "#94a3b8", fontSize: 12 }}>
-              10-day history · guest chat
+    <TooltipProvider>
+      <div className="flex h-screen bg-background">
+        {/* Sidebar */}
+        <div className="w-80 bg-sidebar text-sidebar-foreground flex flex-col border-r">
+          <div className="p-4 space-y-4">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-6 w-6 text-sidebar-primary" />
+                <div>
+                  <h1 className="text-xl font-bold">Meri Chat</h1>
+                  <p className="text-xs text-sidebar-foreground/60">
+                    10-day history · guest chat
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={toggleTheme}
+                      className="bg-sidebar-accent hover:bg-sidebar-accent/80"
+                    >
+                      {theme === "dark" ? (
+                        <Sun className="h-4 w-4" />
+                      ) : (
+                        <Moon className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Toggle {theme === "dark" ? "light" : "dark"} mode</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => setAdminModalOpen(true)}
+                      className="bg-sidebar-accent hover:bg-sidebar-accent/80"
+                    >
+                      <Shield className="h-4 w-4" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Admin login</p>
+                  </TooltipContent>
+                </Tooltip>
+              </div>
             </div>
+
+            <Separator className="bg-sidebar-border" />
+
+            {/* User Section */}
+            {!currentUser ? (
+              <UsernameForm onSubmit={handleRegister} />
+            ) : (
+              <div className="flex items-center gap-2">
+                <UserIcon className="h-4 w-4" />
+                <Badge variant="success">{currentUser.username}</Badge>
+                {currentUser.isAdmin && (
+                  <Badge variant="warning" className="flex items-center gap-1">
+                    <Shield className="h-3 w-3" />
+                    Admin
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            <Separator className="bg-sidebar-border" />
+
+            {/* Create Channel */}
+            <CreateChannelForm
+              onCreate={handleCreateChannel}
+              onSuggest={handleSuggestChannel}
+            />
           </div>
-          <button
-            className="button secondary"
-            onClick={() => setAdminModalOpen(true)}
-          >
-            Admin
-          </button>
+
+          {/* Channel List */}
+          <ChannelList
+            channels={sortedChannels}
+            currentUser={currentUser}
+            currentChannelId={currentChannel?._id}
+            onJoin={handleJoinChannel}
+            onDelete={handleDeleteChannel}
+          />
         </div>
 
-        {!currentUser ? (
-          <UsernameForm onSubmit={handleRegister} />
-        ) : (
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <span className="badge">{currentUser.username}</span>
-            {currentUser.isAdmin && <span className="badge admin">Admin</span>}
-          </div>
-        )}
+        {/* Main Chat Area */}
+        <div className="flex-1 flex flex-col">
+          <ChatRoom
+            messages={messages}
+            currentUser={currentUser}
+            channelName={currentChannel?.name}
+          />
+          <MessageInput
+            onSend={handleSendMessage}
+            disabled={!currentChannel || !currentUser}
+          />
+        </div>
 
-        <CreateChannelForm
-          onCreate={handleCreateChannel}
-          onSuggest={handleSuggestChannel}
-        />
-
-        <ChannelList
-          channels={sortedChannels}
-          currentUser={currentUser}
-          currentChannelId={currentChannel?._id}
-          onJoin={handleJoinChannel}
-          onDelete={handleDeleteChannel}
-        />
-      </div>
-
-      <div className="main-pane">
-        <ChatRoom
-          messages={messages}
-          currentUser={currentUser}
-          channelName={currentChannel?.name}
-        />
-        <MessageInput
-          onSend={handleSendMessage}
-          disabled={!currentChannel || !currentUser}
+        {/* Admin Modal */}
+        <AdminLoginModal
+          open={adminModalOpen}
+          onClose={() => setAdminModalOpen(false)}
+          onLogin={handleAdminLogin}
+          error={adminError}
         />
       </div>
-
-      <AdminLoginModal
-        open={adminModalOpen}
-        onClose={() => setAdminModalOpen(false)}
-        onLogin={handleAdminLogin}
-        error={adminError}
-      />
-    </div>
+    </TooltipProvider>
   );
 };
 
