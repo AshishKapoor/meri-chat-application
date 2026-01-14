@@ -7,7 +7,7 @@ const messageSchema = new Schema<MessageDocument>(
     channelId: { type: String, required: true, index: true },
     senderUsername: { type: String, required: true },
     senderVisitorId: { type: String, required: true },
-    timestamp: { type: Date, default: Date.now, index: true },
+    timestamp: { type: Date, default: Date.now },
     system: { type: Boolean, default: false },
   },
   { timestamps: false }

@@ -1,4 +1,42 @@
 services:
+  server:
+    image: node:20-alpine
+    container_name: chatapp-server
+    working_dir: /app/server
+    command: sh -c "corepack enable && pnpm install && pnpm dev"
+    ports:
+      - "4000:4000"
+    environment:
+      PORT: 4000
+      MONGODB_URI: mongodb://root:example@mongo:27017/chatapp?authSource=admin
+      ADMIN_EMAIL: admin@admin.com
+      ADMIN_PASSWORD: admin
+      CLIENT_ORIGIN: http://localhost:5173,http://localhost:5174
+    volumes:
+      - ./server:/app/server
+      - /app/server/node_modules
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  client:
+    image: node:20-alpine
+    container_name: chatapp-client
+    working_dir: /app/client
+    command: sh -c "corepack enable && pnpm install && pnpm run dev -- --host --port 5173"
+    ports:
+      - "5173:5173"
+    environment:
+      VITE_API_URL: http://localhost:4000
+    volumes:
+      - ./client:/app/client
+      - /app/client/node_modules
+    depends_on:
+      server:
+        condition: service_started
+    restart: unless-stopped
+
   mongo:
     image: mongo:7
     container_name: chatapp-mongo
