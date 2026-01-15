@@ -36,19 +36,19 @@ export const ChannelList = ({
               key={channel._id}
               onClick={() => onJoin(channel._id)}
               className={cn(
-                "p-3 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5",
-                isActive && "ring-2 ring-primary bg-accent"
+                "p-3 cursor-pointer transition-all hover:shadow-md hover:-translate-y-0.5 bg-sidebar-accent border-sidebar-border text-sidebar-foreground",
+                isActive && "ring-2 ring-sidebar-primary bg-sidebar-accent/60"
               )}
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
-                    <Hash className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    <span className="font-semibold text-sm truncate">
+                    <Hash className="h-4 w-4 text-sidebar-foreground/60 flex-shrink-0" />
+                    <span className="font-semibold text-sm truncate text-sidebar-foreground">
                       {channel.name}
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <div className="flex items-center gap-2 text-xs text-sidebar-foreground/60">
                     <Users className="h-3 w-3" />
                     <span>{channel.memberCount ?? 0} online</span>
                     <span>·</span>
@@ -75,7 +75,7 @@ export const ChannelList = ({
           );
         })}
         {channels.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground text-sm">
+          <div className="text-center py-8 text-sidebar-foreground/60 text-sm">
             No channels yet. Create one to start chatting!
           </div>
         )}

@@ -32,7 +32,7 @@ export const CreateChannelForm = ({ onCreate, onSuggest }: Props) => {
         placeholder="Create a channel..."
         value={name}
         onChange={(e) => setName(e.target.value)}
-        className="flex-1"
+        className="flex-1 bg-sidebar-accent border-sidebar-border text-sidebar-foreground placeholder:text-sidebar-foreground/60"
       />
       <Button
         type="button"
@@ -40,13 +40,18 @@ export const CreateChannelForm = ({ onCreate, onSuggest }: Props) => {
         size="sm"
         onClick={handleSuggest}
         disabled={loading}
-        className="gap-2"
+        className="gap-2 bg-sidebar-accent hover:bg-sidebar-accent/80 text-sidebar-foreground border-sidebar-border"
         aria-label="Suggest channel name"
       >
         <Sparkles className="h-4 w-4" />
         <span className="hidden sm:inline">Suggest</span>
       </Button>
-      <Button type="submit" size="icon" aria-label="Create channel">
+      <Button
+        type="submit"
+        size="icon"
+        className="bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground"
+        aria-label="Create channel"
+      >
         <Plus className="h-4 w-4" />
       </Button>
     </form>
