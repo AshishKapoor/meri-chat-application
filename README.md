@@ -2,7 +2,7 @@
 
 A real-time multi-window chat application built with Express.js, Socket.IO, MongoDB, and React. Supports guest users, channel creation/joining, admin features, and persistent message history with automatic cleanup.
 
-![Chat App Demo](https://via.placeholder.com/800x400/0f172a/e2e8f0?text=Meri+Chat+App)
+<img width="1800" height="1045" alt="Screenshot 2026-01-15 at 12 05 31 PM" src="https://github.com/user-attachments/assets/0b5e0d32-527b-4433-acb7-168521081206" />
 
 ## ✨ Features
 
