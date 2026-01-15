@@ -8,3 +8,7 @@ pnpm-debug.log*
 /build
 /.turbo
 /.cache
+./server/.pnpm-store
+./client/.pnpm-store
+server/.pnpm-store
+client/.pnpm-store
